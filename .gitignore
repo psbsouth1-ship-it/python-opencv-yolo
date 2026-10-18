@@ -1,0 +1,9 @@
+# 虚拟环境与本地生成物（不要提交）
+.venv/
+.ultralytics/
+.assets-tmp/
+runs/
+datasets/coco8/
+weights/*.pt
+__pycache__/
+*.pyc

@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "当前 Python 文件",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "YOLO_CONFIG_DIR": "${workspaceFolder}/.ultralytics",
+        "PYTHONIOENCODING": "utf-8",
+        "SSL_CERT_FILE": "${workspaceFolder}/.venv/Lib/site-packages/certifi/cacert.pem"
+      }
+    }
+  ]
+}

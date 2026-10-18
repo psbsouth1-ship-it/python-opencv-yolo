@@ -1,0 +1,15 @@
+# 运行环境（Python 3.13 + PyTorch CPU 版）
+# torch/torchvision 来自官方 CPU 索引，先单独安装：
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu -i https://pypi.tuna.tsinghua.edu.cn/simple
+torch==2.14.1
+torchvision==0.29.1
+numpy==2.5.4
+
+# YOLO 与图像处理
+ultralytics==8.4.182
+opencv-python==5.0.0.93
+matplotlib==3.11.2
+pandas==3.0.6
+
+# 证书包（本机 Python 缺少中间证书，需用它才能自动下载权重/数据集）
+certifi==2026.7.22

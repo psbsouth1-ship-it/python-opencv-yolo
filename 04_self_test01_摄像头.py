@@ -47,13 +47,14 @@ try:
         #自己打框
 
         for box in result.boxes:
+            
             rx,ry,lx,ly=box.xyxy[0].cpu().numpy()
             #[0]取第一个框，cpu()和numpy()使可读
             rx,ry,lx,ly=int(rx),int(ry),int(lx),int(ly)
             cOnf=float(box.conf)
             id=int(box.cls)
 
-            cv2.rectangle(annotated,(rx,ry),(lx,ly),(0,0,0),2)
+            cv2.rectangle(annotated,(rx,ry),(lx,ly),(0,0,0),5)
 
             class_name = model.names[id]
             label = f"{class_name} {cOnf:.2f}"

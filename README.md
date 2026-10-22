@@ -45,6 +45,7 @@ python-opencv-yolo/
 ├── 01_predict_image.py    # 示例 1：图片检测
 ├── 02_webcam.py           # 示例 2：摄像头 / 视频实时检测
 ├── 03_train.py            # 示例 3：COCO8 上的简易训练
+├── 07_mc脚本.py            # 示例 4：MC 末影人检测 → 点击画面中心（自动攻击）
 ├── requirements.txt       # 固定版本依赖清单
 └── setup.bat              # 一键重建环境脚本
 ```
@@ -62,6 +63,9 @@ python 01_predict_image.py 你的图片.jpg # 检测自己的图片
 python 02_webcam.py                    # 打开摄像头实时检测，按 q 退出
 python 02_webcam.py 视频.mp4            # 检测视频文件
 python 03_train.py                     # 在 COCO8 上训练 20 轮（CPU 约 1 分钟）
+python 07_mc脚本.py                    # MC：检测到末影人后点击画面中心（F8 开关 / F9 调试 / F10 退出）
+python 07_mc脚本.py --no-control       # MC：只检测不动鼠标，先看调试窗口效果
+python 07_mc脚本.py --save-frame runs\shot.png   # 截一帧游戏画面，用来调颜色阈值
 ```
 
 也可以在 VS Code 里按 `F5` 调试当前打开的脚本。
@@ -87,6 +91,30 @@ python 03_train.py                     # 在 COCO8 上训练 20 轮（CPU 约 1 
 - 下载源：清华 PyPI 镜像
 - YOLO 配置目录指向项目内 `.ultralytics/`，数据集/权重/结果目录均在项目内
 
+## MC 视觉脚本（07_mc脚本.py）
+
+不做 YOLO，走的是**颜色 + 形状**的经典 OpenCV 路线：末影人 = 几乎纯黑的车体 + 一对亮紫色眼睛。
+
+| 环节 | 做法 |
+| --- | --- |
+| 画面来源 | GDI 直接截 Java 版游戏窗口（不占摄像头、不挡鼠标）；窗口关掉/最小化时退回截主屏幕 |
+| 检测 | 紫色眼睛（B/R 高、G 低）→ 只有「眼睛周围有一大片纯黑」才算末影人 → 相距 36px 内的紫块合并成同一只 |
+| 触发 | 画面里末影人数量 ≥ `MIN_TARGETS`（默认 2）；加 `--require-center` 则要求准星附近就有末影人 |
+| 动作 | 鼠标移到画面中心（准星）→ 按下左键 → 松开；**一次触发只打一次**，末影人消失后再出现才会打第二次 |
+| 热键 | F8 开关自动攻击、F9 调试窗口、F10 退出 |
+
+可调参数都在文件开头「配置」区：
+
+- `MIN_TARGETS`：几个末影人才打。看不清远处小目标时可以同时调大 `EYE_MIN_AREA`。
+- `BODY_MIN_RATIO`：眼睛周围多黑才算「黑车体」。误把紫色粒子当末影人 → 调大；漏检 → 调小。
+- `MERGE_DIST_X/Y`：多近的紫块算同一只末影人。
+- `CENTER_TOLERANCE`：准星离末影人多近才算「已对准」（配合 `--require-center` 使用）。
+- `EYE_B_MIN / EYE_R_MIN / EYE_BG_DIFF / EYE_RG_DIFF`：紫色阈值。换了光影/材质后识别异常，先用
+  `--save-frame runs\shot.png` 截一张图，再对着图微调。
+
+安全提示：脚本只在鼠标位于游戏窗口内时才点击，`--no-control` 可以纯观察；F10 随时退出。
+Java 版点鼠标时游戏会自动把光标锁在窗口中间，所以「移到中心再点」不会让视角乱转。
+
 ## 常见问题
 
 - **自动下载权重报 `CERTIFICATE_VERIFY_FAILED`**：本机 Python 缺少中间证书。`.env` 里已设置
@@ -96,6 +124,10 @@ python 03_train.py                     # 在 COCO8 上训练 20 轮（CPU 约 1 
 - **结果目录出现 `runs\detect\runs\...`**：这是 Ultralytics 把相对路径 `project="runs"` 再拼一次导致的。
   脚本里已改用 `os.path.abspath("runs")`；自己写代码时也建议给 `project` 传绝对路径。
 - **摄像头打不开**：关闭其他占用摄像头的程序（腾讯会议、微信等），或换 `python 02_webcam.py 1`。
+- **`07_mc脚本.py` 找不到游戏窗口**：它同时匹配窗口标题含 `Minecraft` 和进程是 `java.exe`，
+  所以不会误抓 VS Code 里的 `07_mc脚本.py` 标签页。若游戏标题被改过，用 `--keyword 你的标题` 指定。
+- **高 DPI（缩放 125%/150%）下点击位置偏了**：脚本已按真实像素和逻辑坐标分别处理截图与鼠标，
+  正常不需要手动改；如果仍偏，检查系统缩放是否作用在游戏上，或改用游戏内「全屏」。
 - **`ultralytics` 每次导入都说 `Creating new Ultralytics Settings`**：说明 `.ultralytics` 设置文件损坏，
   删掉 `.ultralytics` 文件夹后重新运行一次即可。
 
